@@ -68,7 +68,7 @@ with st.sidebar:
     st.write("4. Review the answer and supporting evidence.")
     st.divider()
     st.caption("Model")
-    st.write(get_config_value("GROQ_CHAT_MODEL", "compound-beta"))
+    st.write(get_config_value("GROQ_CHAT_MODEL", "llama-3.1-8b-instant"))
 
 
 left_col, right_col = st.columns([1, 1], gap="large")
@@ -200,7 +200,7 @@ if st.button("Analyze", type="primary"):
                         chunks=st.session_state.chunks,
                         chat_model=get_config_value(
                             "GROQ_CHAT_MODEL",
-                            "compound-beta",
+                            "llama-3.1-8b-instant",
                         ),
                     )
                 except Exception as error:

@@ -32,7 +32,7 @@ def extract_text_from_upload(uploaded_file):
     return clean_text(file_bytes.decode("utf-8", errors="ignore"))
 
 
-def chunk_text(text, source_type, source_name, chunk_size=900, overlap=150, id_prefix=None):
+def chunk_text(text, source_type, source_name, chunk_size=450, overlap=75, id_prefix=None):
     cleaned = clean_text(text)
 
     if not cleaned:

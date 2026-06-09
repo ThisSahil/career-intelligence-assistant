@@ -33,7 +33,7 @@ Add your Groq API key to `.env`:
 
 ```bash
 GROQ_API_KEY=your_key_here
-GROQ_CHAT_MODEL=compound-beta
+GROQ_CHAT_MODEL=llama-3.1-8b-instant
 ```
 
 ## Architecture
@@ -83,10 +83,10 @@ The app uses a straightforward retrieval flow:
 2. Split the text into overlapping chunks.
 3. Convert the question and chunks into local TF-IDF vectors.
 4. Rank chunks by cosine similarity.
-5. Pass the top chunks to the Groq chat model as context.
+5. Pass a small set of top chunks to the Groq chat model as context.
 6. Ask the model to answer only from that context.
 
-I kept the retrieval layer simple on purpose. For this assignment, the important part is that the app is understandable, working, and grounded in the uploaded material. TF-IDF is not as semantically strong as embeddings, but it is transparent, fast, free to run locally, and good enough for a small resume/job-description demo. A separate vector database with embedding search would be useful later, but it would add moving parts that are not needed for the first version.
+I kept the retrieval layer simple on purpose. For this assignment, the important part is that the app is understandable, working, and grounded in the uploaded material. TF-IDF is not as semantically strong as embeddings, but it is transparent, fast, free to run locally, and good enough for a small resume/job-description demo. The app also keeps a fixed context budget before calling the model so large resumes or job descriptions do not make the request too large. A separate vector database with embedding search would be useful later, but it would add moving parts that are not needed for the first version.
 
 ## Key Decisions
 
@@ -100,7 +100,7 @@ The current version builds a local TF-IDF index at analysis time and keeps data 
 
 **Groq for answer generation**
 
-I used Groq for the chat model because it is fast, easy to set up, and has a generous free tier. The current default is Compound. Since Groq is used only for generation here, the retrieval step stays local.
+I used Groq for the chat model because it is fast, easy to set up, and has a generous free tier. Since Groq is used only for generation here, the retrieval step stays local.
 
 **Evidence shown beside the answer**
 

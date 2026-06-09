@@ -21,7 +21,18 @@ Be specific, practical, and honest. Focus on role fit, skill gaps, resume improv
 """.strip()
 
 
-def retrieve_chunks(question, chunks, top_k=7):
+MAX_CHUNK_TEXT_LENGTH = 280
+MAX_CONTEXT_LENGTH = 1200
+
+
+def trim_text(text, max_length):
+    if len(text) <= max_length:
+        return text
+
+    return text[:max_length].rsplit(" ", 1)[0].strip()
+
+
+def retrieve_chunks(question, chunks, top_k=3):
     texts = [chunk.text for chunk in chunks]
     vectorizer = TfidfVectorizer(stop_words="english", ngram_range=(1, 2))
     matrix = vectorizer.fit_transform([question] + texts)
@@ -46,13 +57,24 @@ def retrieve_chunks(question, chunks, top_k=7):
 
 def build_context(retrieved_chunks):
     sections = []
+    remaining_length = MAX_CONTEXT_LENGTH
 
     for index, chunk in enumerate(retrieved_chunks, start=1):
-        sections.append(
+        chunk_text = trim_text(chunk.text, min(MAX_CHUNK_TEXT_LENGTH, remaining_length))
+        section = (
             f"Source {index}: {chunk.source_name}\n"
             f"Type: {chunk.source_type}\n"
-            f"Text:\n{chunk.text}"
+            f"Text:\n{chunk_text}"
         )
+
+        if len(section) > remaining_length:
+            break
+
+        sections.append(section)
+        remaining_length -= len(section)
+
+        if remaining_length <= 0:
+            break
 
     return "\n\n---\n\n".join(sections)
 
@@ -66,16 +88,17 @@ Question:
 Context:
 {context}
 
-Answer with these sections:
-1. Direct answer
-2. Supporting evidence
-3. Skill gaps or risks
-4. Recommended next steps
+Answer briefly with:
+1. Fit summary
+2. Evidence
+3. Gaps
+4. Next steps
 """.strip()
 
     response = client.chat.completions.create(
         model=chat_model,
         temperature=0.2,
+        max_tokens=700,
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": user_prompt},
@@ -89,7 +112,7 @@ def answer_question(
     api_key,
     question,
     chunks,
-    chat_model="compound-beta",
+    chat_model="llama-3.1-8b-instant",
 ):
     client = Groq(api_key=api_key)
     retrieved_chunks = retrieve_chunks(question, chunks)
